@@ -6,7 +6,7 @@ theme: "starter-hugo-academic"
 
 title: David Teuscher # Website name
 baseurl: 'https://davidteuscher.netlify.app/' # Website URL
-copyright: '' # Footer text, e.g. '© {year} Me'
+copyright: '© {year} David Teuscher' # Footer text, e.g. '© {year} Me'
 
 ############################
 ## LANGUAGE
