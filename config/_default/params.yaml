@@ -81,12 +81,12 @@ edit_page:
     post: false
     book: false
 show_related:
-  book: true
+  book: false
   page: false
   post: true
   project: true
-  publication: true
-  event: true
+  publication: false
+  event: false
 reading_time: true
 section_pager: false
 docs_section_pager: true
@@ -107,8 +107,6 @@ publications:
   citation_style: apa
 projects:
   post_view: 2
-  publication_view: 2
-  talk_view: 2
 breadcrumb:
   page_types:
     book: true

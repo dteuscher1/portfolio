@@ -18,8 +18,7 @@ image:
 links:
 - name: Custom Link
   url: http://example.org
-projects:
-- internal-project
+projects: []
 publication: ""
 publication_short: ""
 publication_types:

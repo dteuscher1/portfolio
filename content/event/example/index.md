@@ -25,8 +25,7 @@ links:
   name: Follow
   url: https://twitter.com/georgecushen
 location: Wowchemy HQ
-projects:
-- internal-project
+projects: []
 publishDate: "2017-01-01T00:00:00Z"
 slides: example
 summary: An example talk using Wowchemy's Markdown slides feature.
