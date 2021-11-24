@@ -1,0 +1,18 @@
+---
+title: Intro
+author: David Teuscher
+date: '2021-11-23'
+slug: intro
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: [David Teuscher]
+lastmod: '2021-11-23T16:45:35-07:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: yes
+projects: []
+---
