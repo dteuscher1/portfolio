@@ -20,6 +20,8 @@ url_video: ""
 
 This project was used as my Master's project at BYU with the help of Dr. Matt Heaton and Dr. Neil Hansen. I will provide information about the details and will include some technical information, but not everything will be included here. I have a formal report and it is currently in progress of being published. When it is published, the article title and the journal it is published it will be provided. Until this happens, if you are interested in further detail about the project, feel free to contact me and I can share what I have currently before it is published.
 
+This project is longer than most of my projects because of the many different technical parts and it represents a year and half to two years of work as well. 
+
 # Background 
 
 The management of agricultural fields (i.e. farming) in the era of data science has evolved to use spatial mapping, remote sensing, soil and terrain measurements, weather measurements and other data sources to improve the quantity and quality of crops. The access to rich amounts of data provides opportunities for analysis that can inform decision making such as the amount of water and fertilizer to apply at any given time at any given location. The management of agricultural fields using advanced data analytics is referred to, collectively, as precision agriculture. Broadly, precision agriculture attempts to use the spatial variability within a field to manage individual crop locations rather than treat a field as spatially and temporally homogeneous.  Given that agriculture fields often occupy multiple acres of space, precision agriculture has been shown to outperform basic farming techniques by increasing crop yield.
@@ -93,4 +95,34 @@ This specific model is used because it accounts for the challenges previously me
 
 # Results
 
+This sections outlines identified irrigation zones from the model previously defined when fit to the Rexburg field data. For our application, we used the following ten covariates: elevation, yield, NDVI index for 2018 and 2019, two different measures of slope at a location, the $x$ and $y$ aspect of a location, a covariate called analytical, which was an additional measure of aspect and a topographical wetness index. Each of these covariates were observed via remote sensing at 5062 locations in the field.
+
+## Model Settings and MCMC Diagnostics
+
+
 # Conclusions
+
+This analysis presents a Bayesian spatial neural network model with easily obtainable predictors such as elevation, slope, and past crop yields to be used for irrigation zone delineation.
+
+We propose this model as an alternative to the expensive and time consuming process of
+measuring volumetric water content. The model provides a fusion of statistical modeling and deep learning by harnessing the predictive ability of artificial neural networks, while quantifying uncertainty using Bayesian methods and using spatial modeling to capture spatial correlation in the irrigation zones. The analysis showed that for the field in Rexburg, Idaho, the most influential covariates for delineating irrigation zones were elevation, yield and the NDVI index.
+
+There are some issues with the model presented that could be examined to improve
+upon the proposed model. As mentioned, the neural network weights individually did not
+converge well. While we used efforts such as strong prior assumptions
+(the equivalent of penalization in traditional neural network model fitting), we still did not achieve strong mixing properties of the Markov chain desirable for posterior inference. One possible solution to this is to use Hamiltonian Monte Carlo techniques which could integrate the backward-propogation algorithm but in a Bayesian posterior sampling paradigm.
+
+There were 3 irrigation zones chosen for this analysis, but the performance of the
+model as the number of zones increase has yet to be studied and it is unknown if the model will perform as well when there are more than 3 irrigation zones. Further, perhaps more irrigation zones would increase the efficiency of the VRI technology. Future research could consider the effect of the number of zones on the fitted model.
+
+Finally, the predictions from the model gives zones that are not completely spatially
+contiguous. For the results to be useful for farmers, they need to have spacial contiguous zones that would be feasible to be implemented with VRI. In this scenario, spatial hierarchical clustering was used to smooth the predictions even further in order to get contiguous zones. There may be other approaches to smoothing out the predictions to get useful irrigation zones that can be implemented with VRI systems.
+
+In addition to the potential issues that should be further studied, there is potential
+future work that can be done based on the results from the analysis. First, the analysis and results of this model has only been applied to the one field in Rexburg. It would be beneficial to be able to use the model to delineate other fields. The model will be most beneficial when it is portable to other fields and scenarios. At the moment, the efficacy of this model is only known for the field of winter wheat in Rexburg.
+
+In addition, to increase the portability of the model, it would be useful to consider
+other possible covariates that could be used to determine the volumetric water content. The covariates that were used in the analysis were provided and consequentially there may be other covariates that would be beneficial to delineating irrigation zones. For this analysis, we used ten different covariates and a number of them did not appear to be extremely important in determining the irrigation zone based on the partial dependence and feature importance plots. The impact of adding and subtracting covariates from the model could be examined further.
+
+Overall, the use of Bayesian spatial neural network models has the ability to create
+accurate irrigation zones from easily obtained data about a field without having to put in painstaking effort to determine the volumetric water content. As a result, these models could make the implementation of variable rate irrigation easier for farmers in agricultural fields.
