@@ -99,6 +99,27 @@ This sections outlines identified irrigation zones from the model previously def
 
 ## Model Settings and MCMC Diagnostics
 
+For our implementation, we set the number of irrigation zones, $R$, to 3. As previously mentioned, $R$ will rarely if ever be higher than 4 or 5 and, in discussion with the farm owner, 3 zones was determined to be reasonable based on the field's VRI capacities. We also used rectified linear unit activation functions for all the activation functions with the exception of the output layer which was an identity activation to match the support of $Z(\mathbf{s})$. Certainly, other activation functions could be used but the rectified linear units is one of the most common. %It isn't expected for the activation function to influence the results, but this could be an area of future study.
+
+Beyond the above model settings, implementation of our spatial neural network model requires tuning the number of layers ($L$), the number of units per layer ($\{P_l\}$), and the number of Moran basis functions ($K$).  For each parameter setting in Table 1, we implemented a 6-fold cross validation and averaged the adjusted Rand index across the 6 folds as a predictive performance metric.  Prior to fitting the models in Table 1, a larger grid was first used to get a general idea of the reasonable values for the tuning parameters. Given our data set consisted of only 66 observations, an effort was made to keep the total number of parameters for the model less than 25 to prevent overfitting. Deeper neural networks, generally, require a lot of data to be effective.  Hence, the grid search only examines one or two layer neural networks (in addition to the input and output layers). The maximum number of Moran basis functions considered was 10 in order to make sure that the zones were being determined by the neural network predictions rather than being overly driven by the spatial aspect of our model. 
+
+Table 1 shows the cross validation results and finds that a single layer with 10 neurons and 5 Moran basis functions were the ideal parameters for this data. The results displayed in the following subsections are from this model setting.  Note that, generally, from Table 1, adding spatial basis functions improved the model's predictive ability suggesting that novel contribution of merging spatial modeling techniques with deep learning is of value in this particular setting.
+
+<div align="center">
+
+
+|<div style="width:150px"> Neurons </div>| <div style="width:150px"> Layers </div>| <div style="width:150px"> Spatial</div>| <div style="width:150px"> Rand Index </div>|
+|:-------:|:------:|:-------:|:----------:|
+| 10      | 1      | 0       | .06767     |
+| (10,10) | 2      | 0       | .1776      |
+| 20      | 1      | 0       | .12296     |
+| 10      | 1      | 5       | .31795     |
+| (10,10) | 2      | 5       | .22377     |
+| 20      | 1      | 5       | .13879     |
+
+**Table 1: Cross Validation results. The first column lists the number of neurons for each layer, the second column indicates the number of layers for the neural net, the third column shows the number of Moran basis functions, and the fourth column gives the average adjusted Rand index over the 6 folds**
+</div>
+
 
 # Conclusions
 
