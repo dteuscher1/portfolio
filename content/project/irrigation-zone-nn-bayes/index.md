@@ -91,6 +91,7 @@ With this specification, we can assume that
 where $f_L(\mathbf{X}(\mathbf{s}))$ is the univariate output function of an $L$-layer feed forward neural network (FFNN) with input covariates $\mathbf{X}(\mathbf{s}) = (X_1(\mathbf{s}),\dots, X_P(\mathbf{s}))'$ and $w(\mathbf{s})$ is a spatial random effect.
 
 This specific model is used because it accounts for the challenges previously mentioned. The FFNN can model the complex relationship between the covariates and the associated irrigation zones and the spatial random effect, $w(\mathbf{s})$, smoothes the predicted zones so they can be implemented by VRI. 
+
 # Parameter Estimation
 
 # Results
@@ -119,6 +120,21 @@ Table 1 shows the cross validation results and finds that a single layer with 10
 
 **Table 1: Cross Validation results. The first column lists the number of neurons for each layer, the second column indicates the number of layers for the neural net, the third column shows the number of Moran basis functions, and the fourth column gives the average adjusted Rand index over the 6 folds**
 </div>
+
+When using Markov chain Monte Carlo sampling in a Bayesian framework as is the case here, it is important to make sure that the algorithm provides samples of the parameters from posterior distribution via convergence diagnostics. Figure 6 display trace plots of $f_L(\mathbf{X}(\mathbf{s})) + w(\mathbf{s})$ for four different locations in the field while Figure 7 displays trace plots of the cut point.  We display these trace plots as $f_L(\mathbf{X}(\mathbf{s})) + w(\mathbf{s})$ and the cut point are the main quantities from which we derive our irrigation zone delineation.  These trace plots show that these parameters have converged and they can be used to for posterior inference.
+
+
+`{{< figure src="traceplots.jpg" title="Figure 6">}}`
+
+`{{< figure src="cut_point_trace.jpg" title="Figure 7">}}`
+
+Although we estimated many more parameters, these were the parameters that we were using to make inference, so we were only concerned about convergence for these parameters. 
+
+## Model Comparisons
+
+## Covariate Effects
+
+## Field-wide Irrigation Zone Delineation
 
 
 # Conclusions
