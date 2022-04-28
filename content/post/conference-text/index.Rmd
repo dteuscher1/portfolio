@@ -33,4 +33,10 @@ The data was web scraped from the official site of The Church of Jesus Christ of
 
 After collecting all of the links, we looped through all of the links and pulled the title of the talk and the text of the talk. The resulting information was saved into a pandas DataFrame that contained the year and month of the conference, the speaker's name, the talk title, and the text of the talk. Afterwards, the data was written to a .csv file to be used in R for further analysis. The Python code for this can be found [here](https://github.com/skylerg022/conference-church-of-jesus-christ/blob/master/conference_scraper.ipynb). 
 
+After scraping the text of the talks, the text was processed and a Shiny app was developed to look at some of the patterns over time and by speaker. The text was tokenized by splitting the text into words and then stopwords, punctuation and numbers were removed from the text using the `tidytext` package. Once the text was in this format, it was summarized in a few different ways:
+
+1. The times a word was used was calculated for each speaker
+2. The times a word was used over time (showing the change in word usage over the years)
+3. A word cloud for a single conference was created
+
 
