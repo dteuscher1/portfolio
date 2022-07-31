@@ -1,0 +1,43 @@
+---
+title: "Pythagorean Model in Sports"
+author: "David Teuscher"
+date: '2022-07-30'
+slug: pythagorean-model-in-sports
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-07-30T19:13:34-06:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r}
+library(Lahman)
+library(tidyverse)
+```
+
+```{r}
+mlb <- Teams %>% 
+    filter(yearID > 1900) %>%
+    select(teamID, yearID, lgID, G, W, L, R, RA) %>%
+    mutate(RD = R - RA, 
+           Wpct = W / (W + L))
+
+mlb_pyt <- mlb %>%
+    mutate(log_w_ratio = log(W/L),
+           log_r_ratio = log(R / RA))
+pyt_fit <- lm(log_w_ratio ~ -1 + log_r_ratio, data = mlb_pyt)
+coef(pyt_fit)
+
+library(nhlapi)
+
+nhl <- nhl_standings(seasons = 2021:2022)
+
+```
+

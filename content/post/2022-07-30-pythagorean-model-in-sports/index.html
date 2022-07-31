@@ -1,0 +1,47 @@
+---
+title: "Pythagorean Model in Sports"
+author: "David Teuscher"
+date: '2022-07-30'
+slug: pythagorean-model-in-sports
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-07-30T19:13:34-06:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<pre class="r"><code>library(Lahman)
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+## ✔ tibble  3.1.7     ✔ dplyr   1.0.9
+## ✔ tidyr   1.2.0     ✔ stringr 1.4.0
+## ✔ readr   2.1.2     ✔ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>mlb &lt;- Teams %&gt;% 
+    filter(yearID &gt; 1900) %&gt;%
+    select(teamID, yearID, lgID, G, W, L, R, RA) %&gt;%
+    mutate(RD = R - RA, 
+           Wpct = W / (W + L))
+
+mlb_pyt &lt;- mlb %&gt;%
+    mutate(log_w_ratio = log(W/L),
+           log_r_ratio = log(R / RA))
+pyt_fit &lt;- lm(log_w_ratio ~ -1 + log_r_ratio, data = mlb_pyt)
+coef(pyt_fit)</code></pre>
+<pre><code>## log_r_ratio 
+##    1.853545</code></pre>
+<pre class="r"><code>library(nhlapi)
+
+nhl &lt;- nhl_standings(seasons = 2021:2022)</code></pre>
