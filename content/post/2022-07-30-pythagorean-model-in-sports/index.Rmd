@@ -37,7 +37,53 @@ coef(pyt_fit)
 
 library(nhlapi)
 
-nhl <- nhl_standings(seasons = 2021:2022)
+nhl <- nhl_standings(seasons = 1990:2022)
+nhl_data <- nhl$teamRecords %>%
+    bind_rows() %>%
+    mutate(point_diff = goalsScored - goalsAgainst,
+           Win_pct = leagueRecord.wins/leagueRecord.losses,
+           log_win_ratio = log(leagueRecord.wins/leagueRecord.losses),
+           log_point_ratio = log(goalsScored/goalsAgainst))
+pyt_fit_nhl <- lm(log_win_ratio ~ -1 + log_point_ratio, data = nhl_data)
+coef(pyt_fit_nhl)
+```
+
+
+```{r}
+
+library(espnscrapeR)
+library(purrr)
+season <- espnscrapeR::get_nfl_standings(season = 2002)
+
+nfl_data <- map_df(2002:2021, get_nfl_standings)
+
+nfl_pyt <- nfl_data %>%
+    mutate(log_w_ratio = log1p(wins) - log1p(losses),
+           log_point_ratio = log(pts_for/pts_against))
+pyt_fit <- lm(log_w_ratio ~ -1 + log_point_ratio, data = nfl_pyt)
+coef(pyt_fit)
+
 
 ```
 
+```{r}
+library(hoopR)
+nba_data <- map_df(1994:2021, espn_nba_standings)
+nba_data <- nba_data %>%
+    mutate(wins = as.numeric(wins),
+           losses = as.numeric(losses),
+           avgpointsfor = as.numeric(avgpointsfor),
+           avgpointsagainst = as.numeric(avgpointsagainst),
+           games = wins + losses,
+           points_for = games*avgpointsfor,
+           points_against = games*avgpointsagainst,
+           point_diff = points_for - points_against,
+           log_w_ratio = log(wins/losses),
+           log_point_ratio = log(points_for/points_against))
+pyt_fit_nba <- lm(log_w_ratio ~ -1 + log_point_ratio, data = nba_data)
+coef(pyt_fit_nba)
+```
+
+```{r}
+
+```
