@@ -19,9 +19,9 @@ interests:
 - Bayesian Statistics
 - Machine Learning
 organizations:
-- name: Brigham Young Univeristy
-  url: https://www.byu.edu/
-role: Statistics MS Student
+- name: Zions Bancorporation
+  url: https://zionsbancorporation.com/overview/corporate-profile/default.aspx
+role: Quantitative Modeling Analyst
 social:
 - icon: envelope
   icon_pack: fas
@@ -42,6 +42,6 @@ superuser: true
 title: David Teuscher
 ---
 
-I am a Statistics Master's student at Brigham Young University. I am searching for a position as a data scientist. I have experience with machine learning, Bayesian statistics, and statistical modeling. My research experience includes sports analytics, spatial statistics, and combining elements of statistical modeling and machine learning together. 
+I work as a Quantitative Modeling Analyst on the Allowance for Credit Loss team. I have experience with machine learning, Bayesian statistics, and statistical modeling. My research experience includes sports analytics, spatial statistics, and combining elements of statistical modeling and machine learning together. My intersts in my free time revolve around sports analytics, natural language processing, and developments in machine learning. 
 
 {{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/Teuscher_David.pdf" "newtab" >}}resume{{< /staticref >}}.

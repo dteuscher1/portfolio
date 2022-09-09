@@ -1,12 +1,12 @@
 ---
-title: "Pythagorean Model in Sports"
+title: "Pythagorean Expectation Across Various Sports"
 author: "David Teuscher"
 date: '2022-07-30'
 slug: pythagorean-model-in-sports
 categories: []
 tags: []
 subtitle: ''
-summary: ''
+summary: 'This is the post summary'
 authors: []
 lastmod: '2022-07-30T19:13:34-06:00'
 featured: no
@@ -19,16 +19,23 @@ projects: []
 
 
 
+<div id="overview-of-pythagorean-expectation" class="section level1">
+<h1>Overview of Pythagorean Expectation</h1>
 <pre class="r"><code>library(Lahman)
 library(tidyverse)</code></pre>
 <pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
 <pre><code>## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
 ## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
-## ✔ tidyr   1.2.0     ✔ stringr 1.4.0
+## ✔ tidyr   1.2.0     ✔ stringr 1.4.1
 ## ✔ readr   2.1.2     ✔ forcats 0.5.1</code></pre>
 <pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+</div>
+<div id="pythagorean-exponent-for-different-sports" class="section level1">
+<h1>Pythagorean Exponent For Different Sports</h1>
+<div id="mlb" class="section level2">
+<h2>MLB</h2>
 <pre class="r"><code>mlb &lt;- Teams %&gt;% 
     filter(yearID &gt; 1900) %&gt;%
     select(teamID, yearID, lgID, G, W, L, R, RA) %&gt;%
@@ -42,6 +49,9 @@ pyt_fit &lt;- lm(log_w_ratio ~ -1 + log_r_ratio, data = mlb_pyt)
 coef(pyt_fit)</code></pre>
 <pre><code>## log_r_ratio 
 ##    1.853545</code></pre>
+</div>
+<div id="nhl" class="section level2">
+<h2>NHL</h2>
 <pre class="r"><code>library(nhlapi)
 
 nhl &lt;- nhl_standings(seasons = 1990:2022)
@@ -55,38 +65,25 @@ pyt_fit_nhl &lt;- lm(log_win_ratio ~ -1 + log_point_ratio, data = nhl_data)
 coef(pyt_fit_nhl)</code></pre>
 <pre><code>## log_point_ratio 
 ##        2.359762</code></pre>
+</div>
+<div id="nfl" class="section level2">
+<h2>NFL</h2>
 <pre class="r"><code>library(espnscrapeR)
 library(purrr)
-season &lt;- espnscrapeR::get_nfl_standings(season = 2002)</code></pre>
-<pre><code>## Returning 2002</code></pre>
-<pre class="r"><code>nfl_data &lt;- map_df(2002:2021, get_nfl_standings)</code></pre>
-<pre><code>## Returning 2002</code></pre>
-<pre><code>## Returning 2003</code></pre>
-<pre><code>## Returning 2004</code></pre>
-<pre><code>## Returning 2005</code></pre>
-<pre><code>## Returning 2006</code></pre>
-<pre><code>## Returning 2007</code></pre>
-<pre><code>## Returning 2008</code></pre>
-<pre><code>## Returning 2009</code></pre>
-<pre><code>## Returning 2010</code></pre>
-<pre><code>## Returning 2011</code></pre>
-<pre><code>## Returning 2012</code></pre>
-<pre><code>## Returning 2013</code></pre>
-<pre><code>## Returning 2014</code></pre>
-<pre><code>## Returning 2015</code></pre>
-<pre><code>## Returning 2016</code></pre>
-<pre><code>## Returning 2017</code></pre>
-<pre><code>## Returning 2018</code></pre>
-<pre><code>## Returning 2019</code></pre>
-<pre><code>## Returning 2020</code></pre>
-<pre><code>## Returning 2021</code></pre>
-<pre class="r"><code>nfl_pyt &lt;- nfl_data %&gt;%
+season &lt;- espnscrapeR::get_nfl_standings(season = 2002)
+
+nfl_data &lt;- map_df(2002:2021, get_nfl_standings)
+
+nfl_pyt &lt;- nfl_data %&gt;%
     mutate(log_w_ratio = log1p(wins) - log1p(losses),
            log_point_ratio = log(pts_for/pts_against))
 pyt_fit &lt;- lm(log_w_ratio ~ -1 + log_point_ratio, data = nfl_pyt)
 coef(pyt_fit)</code></pre>
 <pre><code>## log_point_ratio 
 ##        2.396146</code></pre>
+</div>
+<div id="nba" class="section level2">
+<h2>NBA</h2>
 <pre class="r"><code>library(hoopR)
 nba_data &lt;- map_df(1994:2021, espn_nba_standings)
 nba_data &lt;- nba_data %&gt;%
@@ -104,3 +101,8 @@ pyt_fit_nba &lt;- lm(log_w_ratio ~ -1 + log_point_ratio, data = nba_data)
 coef(pyt_fit_nba)</code></pre>
 <pre><code>## log_point_ratio 
 ##        14.08544</code></pre>
+</div>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+</div>

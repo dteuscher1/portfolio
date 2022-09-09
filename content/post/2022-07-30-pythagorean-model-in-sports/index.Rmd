@@ -1,12 +1,12 @@
 ---
-title: "Pythagorean Model in Sports"
+title: "Pythagorean Expectation Across Various Sports"
 author: "David Teuscher"
 date: '2022-07-30'
 slug: pythagorean-model-in-sports
 categories: []
 tags: []
 subtitle: ''
-summary: ''
+summary: 'This is the post summary'
 authors: []
 lastmod: '2022-07-30T19:13:34-06:00'
 featured: no
@@ -16,12 +16,14 @@ image:
   preview_only: no
 projects: []
 ---
-
+# Overview of Pythagorean Expectation
 ```{r}
 library(Lahman)
 library(tidyverse)
 ```
 
+# Pythagorean Exponent For Different Sports
+## MLB
 ```{r}
 mlb <- Teams %>% 
     filter(yearID > 1900) %>%
@@ -35,6 +37,10 @@ mlb_pyt <- mlb %>%
 pyt_fit <- lm(log_w_ratio ~ -1 + log_r_ratio, data = mlb_pyt)
 coef(pyt_fit)
 
+```
+
+## NHL
+```{r}
 library(nhlapi)
 
 nhl <- nhl_standings(seasons = 1990:2022)
@@ -48,8 +54,8 @@ pyt_fit_nhl <- lm(log_win_ratio ~ -1 + log_point_ratio, data = nhl_data)
 coef(pyt_fit_nhl)
 ```
 
-
-```{r}
+## NFL
+```{r, message=FALSE}
 
 library(espnscrapeR)
 library(purrr)
@@ -66,6 +72,7 @@ coef(pyt_fit)
 
 ```
 
+## NBA
 ```{r}
 library(hoopR)
 nba_data <- map_df(1994:2021, espn_nba_standings)
@@ -84,6 +91,4 @@ pyt_fit_nba <- lm(log_w_ratio ~ -1 + log_point_ratio, data = nba_data)
 coef(pyt_fit_nba)
 ```
 
-```{r}
-
-```
+# Summary
