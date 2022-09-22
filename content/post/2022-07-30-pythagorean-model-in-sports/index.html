@@ -21,22 +21,25 @@ projects: []
 
 <div id="overview-of-pythagorean-expectation" class="section level1">
 <h1>Overview of Pythagorean Expectation</h1>
-<pre class="r"><code>library(Lahman)
-library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
-## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
-## ✔ tidyr   1.2.0     ✔ stringr 1.4.1
-## ✔ readr   2.1.2     ✔ forcats 0.5.1</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<p>Pythagorean expectation is a formula that originated with Bill James in the early 1980s. The formula attempted to estimated the number of games a baseball team should have won in based on the number of runs scored and allowed. The basic formula is:
+<span class="math display">\[\text{Win Percentage} = \frac{\text{Runs Scored}^2}{\text{Runs Scored}^2 + \text{Runs Allowed}^2} \]</span>
+The Pythagorean winning percentage is often compared with a team’s actual winning percentage in baseball to identify teams that are underperforming or overperforming and whether or not a team’s performance is sustainable over the course of the season.</p>
+<ul>
+<li>Explain how prevalent this record is</li>
+<li>Explain the exponent</li>
+<li>Show how to derive log relationship to use with linear regression</li>
+</ul>
 </div>
 <div id="pythagorean-exponent-for-different-sports" class="section level1">
 <h1>Pythagorean Exponent For Different Sports</h1>
-<div id="mlb" class="section level2">
-<h2>MLB</h2>
-<pre class="r"><code>mlb &lt;- Teams %&gt;% 
+<ul>
+<li>Explain that the exponent will be different for different sports
+## MLB</li>
+<li>Explain the baseball data and result</li>
+<li>Compare to other results</li>
+</ul>
+<pre class="r"><code>library(Lahman)
+mlb &lt;- Teams %&gt;% 
     filter(yearID &gt; 1900) %&gt;%
     select(teamID, yearID, lgID, G, W, L, R, RA) %&gt;%
     mutate(RD = R - RA, 
@@ -49,9 +52,12 @@ pyt_fit &lt;- lm(log_w_ratio ~ -1 + log_r_ratio, data = mlb_pyt)
 coef(pyt_fit)</code></pre>
 <pre><code>## log_r_ratio 
 ##    1.853545</code></pre>
-</div>
 <div id="nhl" class="section level2">
 <h2>NHL</h2>
+<ul>
+<li>Explain source of NHL data</li>
+<li>Compare with other results</li>
+</ul>
 <pre class="r"><code>library(nhlapi)
 
 nhl &lt;- nhl_standings(seasons = 1990:2022)
@@ -68,6 +74,10 @@ coef(pyt_fit_nhl)</code></pre>
 </div>
 <div id="nfl" class="section level2">
 <h2>NFL</h2>
+<ul>
+<li>Explain source of NFL data; log1p</li>
+<li>Compare with other results</li>
+</ul>
 <pre class="r"><code>library(espnscrapeR)
 library(purrr)
 season &lt;- espnscrapeR::get_nfl_standings(season = 2002)
@@ -84,6 +94,10 @@ coef(pyt_fit)</code></pre>
 </div>
 <div id="nba" class="section level2">
 <h2>NBA</h2>
+<ul>
+<li>Explain source of NBA data</li>
+<li>Compare with other results</li>
+</ul>
 <pre class="r"><code>library(hoopR)
 nba_data &lt;- map_df(1994:2021, espn_nba_standings)
 nba_data &lt;- nba_data %&gt;%

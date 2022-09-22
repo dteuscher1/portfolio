@@ -17,14 +17,27 @@ image:
 projects: []
 ---
 # Overview of Pythagorean Expectation
-```{r}
-library(Lahman)
+
+Pythagorean expectation is a formula that originated with Bill James in the early 1980s. The formula attempted to estimated the number of games a baseball team should have won in based on the number of runs scored and allowed. The basic formula is: 
+$$\text{Win Percentage} = \frac{\text{Runs Scored}^2}{\text{Runs Scored}^2 + \text{Runs Allowed}^2} $$
+The Pythagorean winning percentage is often compared with a team's actual winning percentage in baseball to identify teams that are underperforming or overperforming and whether or not a team's performance is sustainable over the course of the season. 
+
+ - Explain how prevalent this record is
+ - Explain the exponent
+ - Show how to derive log relationship to use with linear regression 
+ 
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 library(tidyverse)
 ```
 
 # Pythagorean Exponent For Different Sports
+
+- Explain that the exponent will be different for different sports
 ## MLB
+- Explain the baseball data and result
+- Compare to other results
 ```{r}
+library(Lahman)
 mlb <- Teams %>% 
     filter(yearID > 1900) %>%
     select(teamID, yearID, lgID, G, W, L, R, RA) %>%
@@ -40,6 +53,8 @@ coef(pyt_fit)
 ```
 
 ## NHL
+- Explain source of NHL data
+- Compare with other results
 ```{r}
 library(nhlapi)
 
@@ -55,6 +70,8 @@ coef(pyt_fit_nhl)
 ```
 
 ## NFL
+- Explain source of NFL data; log1p
+- Compare with other results
 ```{r, message=FALSE}
 
 library(espnscrapeR)
@@ -73,6 +90,8 @@ coef(pyt_fit)
 ```
 
 ## NBA
+- Explain source of NBA data
+- Compare with other results
 ```{r}
 library(hoopR)
 nba_data <- map_df(1994:2021, espn_nba_standings)
