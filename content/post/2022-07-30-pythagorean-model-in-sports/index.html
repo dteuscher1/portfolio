@@ -1,0 +1,187 @@
+---
+title: "Pythagorean Expectation Across Various Sports"
+author: "David Teuscher"
+date: '2022-07-30'
+slug: pythagorean-model-in-sports
+categories: []
+tags: []
+subtitle: ''
+summary: 'This is the post summary'
+authors: []
+lastmod: '2022-07-30T19:13:34-06:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<div id="overview-of-pythagorean-expectation" class="section level1">
+<h1>Overview of Pythagorean Expectation</h1>
+<p>Pythagorean expectation is a formula that originated with Bill James in the early 1980s. The formula attempted to estimated the number of games a baseball team should have won in based on the number of runs scored and allowed. The basic formula is:
+<span class="math display">\[\text{Win Percentage} = \frac{\text{Runs Scored}^2}{\text{Runs Scored}^2 + \text{Runs Allowed}^2} \]</span>
+The Pythagorean winning percentage is often compared with a team’s actual winning percentage in baseball to identify teams that are underperforming or overperforming and whether or not a team’s performance is sustainable over the course of the season. The Pythagorean winning percentage has become popular enough that a team’s expected recording according to this formula is displayed on <a href="https://www.mlb.com/standings">standings on MLB.com</a> under the X-W/L column.
+<img src="mlb_standings.jpeg" alt="MLB standings with Pythagorean formula" />.</p>
+<p>When considering the AL East in 2022, the Yankees record is worse than what was expected based on their run differential, while the Orioles had a better record than expected. In addition to determining if a team is under or overperforming in a season, the Pythagorean record can also help inform a team how good that may actually be when attempting to make decisions during free agency in the next season.</p>
+<p>Bill James initially proposed an exponent of 2 in this formula. There have been a number of studies looking at the exponent with a goal of finding a better fit. In baseball, the most accurate exponent has been found to be 1.83 and is used most often.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> One simple way to derive this exponent is using a transformed version of the Pythagorean formula and using linear regression. This is a simplified approach to it, but even the results of linear regression produces exponent values that are close to the ideal values found for each sport.</p>
+<p>The formula for Pythagorean win percentage, with an unknown exponent can be written as:
+<span class="math display">\[\text{Win Percentage} = \frac{W}{W + L} = \frac{\text{R}^x}{\text{R}^x + \text{RA}^x} \]</span>
+where <span class="math inline">\(R\)</span> is the runs scored by a team and <span class="math inline">\(RA\)</span> is the runs allowed by a team.</p>
+<p>Using algebra, the formula can be rearranged as shown below where <span class="math inline">\(x\)</span> can be the parameter of a linear regression model.</p>
+<p><span class="math display">\[WR^x + WRA^x = WR^x + LR^x\]</span>
+<span class="math display">\[WRA^x = LR^x\]</span></p>
+<p><span class="math display">\[\frac{W}{L} = \frac{R^x}{RA^x}\]</span>
+<span class="math display">\[ log(\frac{W}{L}) = x*log(\frac{R}{RA})\]</span>
+With this formula, we can solve for <span class="math inline">\(x\)</span> using simple linear regression where <span class="math inline">\(log(\frac{W}{L})\)</span> is the response variable and <span class="math inline">\(log(\frac{R}{RA})\)</span> is the explanatory variable.</p>
+<p>The value of this exponent varies across different sports and the remainder of this post shows how to get the exponent for MLB, NHL, NFL, and NBA using code in R. A discussion about what the different values of the exponent mean won’t be covered here, but a brief, but thorough explanation about the exponent in the formula is given <a href="https://en.wikipedia.org/wiki/Pythagorean_expectation#Theoretical_explanation">on this Wikipedia page</a> in the theoretical explanation section.</p>
+</div>
+<div id="pythagorean-exponent-for-different-sports" class="section level1">
+<h1>Pythagorean Exponent For Different Sports</h1>
+<div id="mlb" class="section level2">
+<h2>MLB</h2>
+<p>Since the Pythagorean winning percentage is used most commonly in baseball, I wanted to look at baseball first. As previously mentioned, the ideal exponent has been found to be 1.83, so I will compare the result I get from here to that exponent.</p>
+<p>The data to calculate the exponent comes from the <code>Lahman</code> package, which contains baseball statistics all the way from 1871 through the present. Since some statistics were recorded early on, any year after 1900 was used. The run differential and winning percentage was calculated for each team every season. Linear regression was then used to calculate what the value of the exponent would be. Note that from this formula, there is no intercept in the model, which is why <code>-1</code> is included in the call to the <code>lm</code> function.</p>
+<p>The resulting value given is 1.854, which is close to the ideal value of 1.83 and can be derived simply using only linear regression.</p>
+<pre class="r"><code>library(tidyverse)
+library(Lahman)
+mlb &lt;- Teams %&gt;% 
+    filter(yearID &gt; 1900) %&gt;%
+    select(teamID, yearID, lgID, G, W, L, R, RA) %&gt;%
+    mutate(RD = R - RA, 
+           Wpct = W / (W + L))
+
+mlb_pyt &lt;- mlb %&gt;%
+    mutate(log_w_ratio = log(W/L),
+           log_r_ratio = log(R / RA))
+pyt_fit &lt;- lm(log_w_ratio ~ -1 + log_r_ratio, data = mlb_pyt)
+round(coef(pyt_fit), digits = 3)</code></pre>
+<pre><code>## log_r_ratio 
+##       1.854</code></pre>
+</div>
+<div id="nhl" class="section level2">
+<h2>NHL</h2>
+<ul>
+<li>Explain source of NHL data</li>
+<li>Compare with other results</li>
+</ul>
+<pre class="r"><code>library(nhlapi)
+
+nhl &lt;- nhl_standings(seasons = 1990:2022)
+nhl_data &lt;- nhl$teamRecords %&gt;%
+    bind_rows() %&gt;%
+    mutate(point_diff = goalsScored - goalsAgainst,
+           Win_pct = leagueRecord.wins/leagueRecord.losses,
+           log_win_ratio = log(leagueRecord.wins/leagueRecord.losses),
+           log_point_ratio = log(goalsScored/goalsAgainst))
+pyt_fit_nhl &lt;- lm(log_win_ratio ~ -1 + log_point_ratio, data = nhl_data)
+coef(pyt_fit_nhl)</code></pre>
+<pre><code>## log_point_ratio 
+##        2.352015</code></pre>
+</div>
+<div id="nfl" class="section level2">
+<h2>NFL</h2>
+<ul>
+<li>Explain source of NFL data; log1p</li>
+<li>Compare with other results</li>
+</ul>
+<pre class="r"><code>library(espnscrapeR)
+library(purrr)
+season &lt;- espnscrapeR::get_nfl_standings(season = 2002)
+
+nfl_data &lt;- map_df(2002:2021, get_nfl_standings)
+
+nfl_pyt &lt;- nfl_data %&gt;%
+    mutate(log_w_ratio = log1p(wins) - log1p(as.numeric(losses)),
+           log_point_ratio = log(pts_for/pts_against))
+
+head(nfl_data)</code></pre>
+<pre><code>## # A tibble: 6 × 28
+##   conf  season team_id team_lo…¹ team_…² team_…³ team_…⁴ team_…⁵ pts_d…⁶ g_beh…⁷
+##   &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;  
+## 1 AFC     2002 10      Tennessee Titans  TEN     Tennes… https:… 43      0      
+## 2 AFC     2002 13      Oakland   Raiders OAK     Oaklan… &lt;NA&gt;    146     0      
+## 3 AFC     2002 23      Pittsbur… Steele… PIT     Pittsb… https:… 45      0.5    
+## 4 AFC     2002 11      Indianap… Colts   IND     Indian… https:… 36      1      
+## 5 AFC     2002 20      New York  Jets    NYJ     New Yo… https:… 23      2      
+## 6 AFC     2002 5       Cleveland Browns  CLE     Clevel… https:… 24      2      
+## # … with 18 more variables: losses &lt;chr&gt;, seed &lt;int&gt;, pts_against &lt;dbl&gt;,
+## #   pts_for &lt;dbl&gt;, streak &lt;dbl&gt;, ties &lt;dbl&gt;, win_pct &lt;dbl&gt;, wins &lt;dbl&gt;,
+## #   div_ties &lt;dbl&gt;, record &lt;chr&gt;, home_wins &lt;dbl&gt;, home_losses &lt;dbl&gt;,
+## #   away_wins &lt;dbl&gt;, away_losses &lt;dbl&gt;, conf_wins &lt;dbl&gt;, conf_losses &lt;dbl&gt;,
+## #   div_wins &lt;dbl&gt;, div_losses &lt;dbl&gt;, and abbreviated variable names
+## #   ¹​team_location, ²​team_name, ³​team_abb, ⁴​team_full, ⁵​team_logo, ⁶​pts_diff,
+## #   ⁷​g_behind</code></pre>
+<pre class="r"><code>pyt_fit_nfl &lt;- lm(log_w_ratio ~ -1 + log_point_ratio, data = nfl_pyt)
+coef(pyt_fit_nfl)</code></pre>
+<pre><code>## log_point_ratio 
+##        2.396146</code></pre>
+</div>
+<div id="nba" class="section level2">
+<h2>NBA</h2>
+<ul>
+<li>Explain source of NBA data</li>
+<li>Compare with other results</li>
+</ul>
+<pre class="r"><code>library(hoopR)
+nba_data &lt;- map_df(1994:2021, espn_nba_standings)
+nba_data &lt;- nba_data %&gt;%
+    mutate(wins = as.numeric(wins),
+           losses = as.numeric(losses),
+           avgpointsfor = as.numeric(avgpointsfor),
+           avgpointsagainst = as.numeric(avgpointsagainst),
+           games = wins + losses,
+           points_for = games*avgpointsfor,
+           points_against = games*avgpointsagainst,
+           point_diff = points_for - points_against,
+           log_w_ratio = log(wins/losses),
+           log_point_ratio = log(points_for/points_against))
+pyt_fit_nba &lt;- lm(log_w_ratio ~ -1 + log_point_ratio, data = nba_data)
+coef(pyt_fit_nba)</code></pre>
+<pre><code>## log_point_ratio 
+##        14.08544</code></pre>
+</div>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+<pre class="r"><code>library(knitr)
+exponents &lt;- data.frame(League = c(&quot;MLB&quot;, &quot;NHL&quot;, &quot;NFL&quot;, &quot;NBA&quot;), 
+                        Exponent = round(c(coef(pyt_fit), coef(pyt_fit_nhl), 
+                                           coef(pyt_fit_nfl), 
+                                           coef(pyt_fit_nba)), digits = 3))
+kable(exponents)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">League</th>
+<th align="right">Exponent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">MLB</td>
+<td align="right">1.854</td>
+</tr>
+<tr class="even">
+<td align="left">NHL</td>
+<td align="right">2.352</td>
+</tr>
+<tr class="odd">
+<td align="left">NFL</td>
+<td align="right">2.396</td>
+</tr>
+<tr class="even">
+<td align="left">NBA</td>
+<td align="right">14.085</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://www.sports-reference.com/blog/baseball-reference-faqs/">Baseball Reference</a> uses an exponent of 1.83 in their calculation of Pythagorean winning percentage.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
