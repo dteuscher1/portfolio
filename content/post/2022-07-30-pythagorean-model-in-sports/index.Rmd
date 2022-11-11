@@ -1,14 +1,14 @@
 ---
 title: "Pythagorean Expectation Across Various Sports"
 author: "David Teuscher"
-date: '2022-07-30'
+date: '2022-11-10'
 slug: pythagorean-model-in-sports
 categories: []
-tags: []
+tags: [sports analytics, linear regression, R]
 subtitle: ''
-summary: 'This is the post summary'
+summary: 'Pythagorean winning percentage is prevalent across many sports, but the exponent in the formula varies between sports. This post goes through deriving the exponent for Pythagorean expectation in the major sports (MLB, NHL, NFL, & NBA).'
 authors: []
-lastmod: '2022-07-30T19:13:34-06:00'
+lastmod: '2022-11-10T19:13:34-06:00'
 featured: no
 image:
   caption: ''
@@ -69,8 +69,10 @@ round(coef(pyt_fit), digits = 3)
 ```
 
 ## NHL
-- Explain source of NHL data
-- Compare with other results
+
+For NHL data, I used the [`nhlapi` package](https://github.com/jozefhajnala/nhlapi), which uses the open NHL API to get data. The standings for all seasons from 1990 through 2022 were pulled, where the point differential could be calculated using the goals scored and the goals against. 
+
+Linear regression is used again in the same way that is was for the MLB data and the resulting value for the exponent is 2.35. A study of Pythagorean winning percentage by Kevin D. Dayaratna and Steven J. Miller for the NHL found an ideal exponent of just above 2.^[[A published paper](hhttps://web.williams.edu/Mathematics/sjmiller/public_html/math/papers/DayaratnaMiller_HockeyFinal.pdf) shows the methodology they used to get this estimate.]
 ```{r}
 library(nhlapi)
 
@@ -86,13 +88,15 @@ coef(pyt_fit_nhl)
 ```
 
 ## NFL
-- Explain source of NFL data; log1p
-- Compare with other results
+The NFL data was scraped using the [`espnscrapeR` package](https://jthomasmock.github.io/espnscrapeR/index.html). The package can be used to scrape the NFL standings for each year. The earliest year that provided the points for and against a team was 2002 so the data for the model goes from 2002-2021. 
+
+One adjustment I had to make for the NFL data was I had to use `log1p()` rather than `log()` for the wins and losses of each team. Since there have been a few instances of a team winning or losing zero games, the natural logarithm would have been undefined. `log1p()` calculates $log(1 + x)$, which adjusts those values that would have been zero. There may be other ways to handle those specific seasons, but `log1p()` was a quick way that I thought of to cover that. I also used `map_df()` to get the standings for each season and return a data frame without using a for loop. The `map` functions in the `purrr` package are very useful in a variety of scenarios. 
+
+The output from the linear regression model gives an exponent of 2.396. Football Outsiders has previously used an exponent of 2.37, which they credited to Daryl Morey. They had also suggested a new exponent that adjusts for offensive environment.^[https://www.footballoutsiders.com/stat-analysis/2017/presenting-adjusted-pythagorean-theorem].
 ```{r, message=FALSE}
 
 library(espnscrapeR)
 library(purrr)
-season <- espnscrapeR::get_nfl_standings(season = 2002)
 
 nfl_data <- map_df(2002:2021, get_nfl_standings)
 
@@ -100,7 +104,6 @@ nfl_pyt <- nfl_data %>%
     mutate(log_w_ratio = log1p(wins) - log1p(as.numeric(losses)),
            log_point_ratio = log(pts_for/pts_against))
 
-head(nfl_data)
 pyt_fit_nfl <- lm(log_w_ratio ~ -1 + log_point_ratio, data = nfl_pyt)
 coef(pyt_fit_nfl)
 
@@ -108,8 +111,9 @@ coef(pyt_fit_nfl)
 ```
 
 ## NBA
-- Explain source of NBA data
-- Compare with other results
+The NBA data was scraped using the `hoopr` package, which also uses ESPN to scrape the yearly standings for teams. Data was taken from the 1994-1995 season through the 2021-2022 season. The average points for and against each team were givent in the standings, so the total number of points scored and allowed for the season were calculated by multiplying by the total number of games in the season (this is generally 82, but there are a few lockout seasons that were shortened and the COVID-19 shortened season as well).
+
+The exponent given from linear regression here is 14.085. Daryl Morey is credited with deriving the exponent for basketball and he got an exponent of 13.91. 
 ```{r}
 library(hoopR)
 nba_data <- map_df(1994:2021, espn_nba_standings)
@@ -129,13 +133,15 @@ coef(pyt_fit_nba)
 ```
 
 # Summary
+As the table below shows, the exponents that are derived using a simple linear regression model that uses the log ratio of the point/run differential to explain the log ratio of wins and losses are pretty close to the ideal exponents that have been derived by others. Although the ideal exponents have been derived by more rigorous statistical methods, a simple linear regression model can provide estimates of the Pythagorean exponent that are in the general ballpark of these expected values. 
 
-```{r}
+```{r, echo=FALSE, message=FALSE}
 library(knitr)
 exponents <- data.frame(League = c("MLB", "NHL", "NFL", "NBA"), 
                         Exponent = round(c(coef(pyt_fit), coef(pyt_fit_nhl), 
                                            coef(pyt_fit_nfl), 
-                                           coef(pyt_fit_nba)), digits = 3))
+                                           coef(pyt_fit_nba)), digits = 3),
+                        Ideal = c(1.83, "Above 2", 2.37, 13.91))
 kable(exponents)
 ```
 
