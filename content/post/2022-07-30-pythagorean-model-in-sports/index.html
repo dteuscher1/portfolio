@@ -1,14 +1,14 @@
 ---
 title: "Pythagorean Expectation Across Various Sports"
 author: "David Teuscher"
-date: '2022-07-30'
+date: '2022-11-10'
 slug: pythagorean-model-in-sports
 categories: []
-tags: []
+tags: [sports analytics, linear regression, R]
 subtitle: ''
-summary: 'This is the post summary'
+summary: 'Pythagorean winning percentage is prevalent across many sports, but the exponent in the formula varies between sports. This post goes through deriving the exponent for Pythagorean expectation in the major sports (MLB, NHL, NFL, & NBA).'
 authors: []
-lastmod: '2022-07-30T19:13:34-06:00'
+lastmod: '2022-11-10T19:13:34-06:00'
 featured: no
 image:
   caption: ''
@@ -63,10 +63,8 @@ round(coef(pyt_fit), digits = 3)</code></pre>
 </div>
 <div id="nhl" class="section level2">
 <h2>NHL</h2>
-<ul>
-<li>Explain source of NHL data</li>
-<li>Compare with other results</li>
-</ul>
+<p>For NHL data, I used the <a href="https://github.com/jozefhajnala/nhlapi"><code>nhlapi</code> package</a>, which uses the open NHL API to get data. The standings for all seasons from 1990 through 2022 were pulled, where the point differential could be calculated using the goals scored and the goals against.</p>
+<p>Linear regression is used again in the same way that is was for the MLB data and the resulting value for the exponent is 2.35. A study of Pythagorean winning percentage by Kevin D. Dayaratna and Steven J. Miller for the NHL found an ideal exponent of just above 2.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
 <pre class="r"><code>library(nhlapi)
 
 nhl &lt;- nhl_standings(seasons = 1990:2022)
@@ -79,17 +77,15 @@ nhl_data &lt;- nhl$teamRecords %&gt;%
 pyt_fit_nhl &lt;- lm(log_win_ratio ~ -1 + log_point_ratio, data = nhl_data)
 coef(pyt_fit_nhl)</code></pre>
 <pre><code>## log_point_ratio 
-##        2.352015</code></pre>
+##        2.354845</code></pre>
 </div>
 <div id="nfl" class="section level2">
 <h2>NFL</h2>
-<ul>
-<li>Explain source of NFL data; log1p</li>
-<li>Compare with other results</li>
-</ul>
+<p>The NFL data was scraped using the <a href="https://jthomasmock.github.io/espnscrapeR/index.html"><code>espnscrapeR</code> package</a>. The package can be used to scrape the NFL standings for each year. The earliest year that provided the points for and against a team was 2002 so the data for the model goes from 2002-2021.</p>
+<p>One adjustment I had to make for the NFL data was I had to use <code>log1p()</code> rather than <code>log()</code> for the wins and losses of each team. Since there have been a few instances of a team winning or losing zero games, the natural logarithm would have been undefined. <code>log1p()</code> calculates <span class="math inline">\(log(1 + x)\)</span>, which adjusts those values that would have been zero. There may be other ways to handle those specific seasons, but <code>log1p()</code> was a quick way that I thought of to cover that. I also used <code>map_df()</code> to get the standings for each season and return a data frame without using a for loop. The <code>map</code> functions in the <code>purrr</code> package are very useful in a variety of scenarios.</p>
+<p>The output from the linear regression model gives an exponent of 2.396. Football Outsiders has previously used an exponent of 2.37, which they credited to Daryl Morey. They had also suggested a new exponent that adjusts for offensive environment.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
 <pre class="r"><code>library(espnscrapeR)
 library(purrr)
-season &lt;- espnscrapeR::get_nfl_standings(season = 2002)
 
 nfl_data &lt;- map_df(2002:2021, get_nfl_standings)
 
@@ -97,34 +93,15 @@ nfl_pyt &lt;- nfl_data %&gt;%
     mutate(log_w_ratio = log1p(wins) - log1p(as.numeric(losses)),
            log_point_ratio = log(pts_for/pts_against))
 
-head(nfl_data)</code></pre>
-<pre><code>## # A tibble: 6 × 28
-##   conf  season team_id team_lo…¹ team_…² team_…³ team_…⁴ team_…⁵ pts_d…⁶ g_beh…⁷
-##   &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;  
-## 1 AFC     2002 10      Tennessee Titans  TEN     Tennes… https:… 43      0      
-## 2 AFC     2002 13      Oakland   Raiders OAK     Oaklan… &lt;NA&gt;    146     0      
-## 3 AFC     2002 23      Pittsbur… Steele… PIT     Pittsb… https:… 45      0.5    
-## 4 AFC     2002 11      Indianap… Colts   IND     Indian… https:… 36      1      
-## 5 AFC     2002 20      New York  Jets    NYJ     New Yo… https:… 23      2      
-## 6 AFC     2002 5       Cleveland Browns  CLE     Clevel… https:… 24      2      
-## # … with 18 more variables: losses &lt;chr&gt;, seed &lt;int&gt;, pts_against &lt;dbl&gt;,
-## #   pts_for &lt;dbl&gt;, streak &lt;dbl&gt;, ties &lt;dbl&gt;, win_pct &lt;dbl&gt;, wins &lt;dbl&gt;,
-## #   div_ties &lt;dbl&gt;, record &lt;chr&gt;, home_wins &lt;dbl&gt;, home_losses &lt;dbl&gt;,
-## #   away_wins &lt;dbl&gt;, away_losses &lt;dbl&gt;, conf_wins &lt;dbl&gt;, conf_losses &lt;dbl&gt;,
-## #   div_wins &lt;dbl&gt;, div_losses &lt;dbl&gt;, and abbreviated variable names
-## #   ¹​team_location, ²​team_name, ³​team_abb, ⁴​team_full, ⁵​team_logo, ⁶​pts_diff,
-## #   ⁷​g_behind</code></pre>
-<pre class="r"><code>pyt_fit_nfl &lt;- lm(log_w_ratio ~ -1 + log_point_ratio, data = nfl_pyt)
+pyt_fit_nfl &lt;- lm(log_w_ratio ~ -1 + log_point_ratio, data = nfl_pyt)
 coef(pyt_fit_nfl)</code></pre>
 <pre><code>## log_point_ratio 
 ##        2.396146</code></pre>
 </div>
 <div id="nba" class="section level2">
 <h2>NBA</h2>
-<ul>
-<li>Explain source of NBA data</li>
-<li>Compare with other results</li>
-</ul>
+<p>The NBA data was scraped using the <code>hoopr</code> package, which also uses ESPN to scrape the yearly standings for teams. Data was taken from the 1994-1995 season through the 2021-2022 season. The average points for and against each team were givent in the standings, so the total number of points scored and allowed for the season were calculated by multiplying by the total number of games in the season (this is generally 82, but there are a few lockout seasons that were shortened and the COVID-19 shortened season as well).</p>
+<p>The exponent given from linear regression here is 14.085. Daryl Morey is credited with deriving the exponent for basketball and he got an exponent of 13.91.</p>
 <pre class="r"><code>library(hoopR)
 nba_data &lt;- map_df(1994:2021, espn_nba_standings)
 nba_data &lt;- nba_data %&gt;%
@@ -146,35 +123,35 @@ coef(pyt_fit_nba)</code></pre>
 </div>
 <div id="summary" class="section level1">
 <h1>Summary</h1>
-<pre class="r"><code>library(knitr)
-exponents &lt;- data.frame(League = c(&quot;MLB&quot;, &quot;NHL&quot;, &quot;NFL&quot;, &quot;NBA&quot;), 
-                        Exponent = round(c(coef(pyt_fit), coef(pyt_fit_nhl), 
-                                           coef(pyt_fit_nfl), 
-                                           coef(pyt_fit_nba)), digits = 3))
-kable(exponents)</code></pre>
+<p>As the table below shows, the exponents that are derived using a simple linear regression model that uses the log ratio of the point/run differential to explain the log ratio of wins and losses are pretty close to the ideal exponents that have been derived by others. Although the ideal exponents have been derived by more rigorous statistical methods, a simple linear regression model can provide estimates of the Pythagorean exponent that are in the general ballpark of these expected values.</p>
 <table>
 <thead>
 <tr class="header">
 <th align="left">League</th>
 <th align="right">Exponent</th>
+<th align="left">Ideal</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">MLB</td>
 <td align="right">1.854</td>
+<td align="left">1.83</td>
 </tr>
 <tr class="even">
 <td align="left">NHL</td>
-<td align="right">2.352</td>
+<td align="right">2.355</td>
+<td align="left">Above 2</td>
 </tr>
 <tr class="odd">
 <td align="left">NFL</td>
 <td align="right">2.396</td>
+<td align="left">2.37</td>
 </tr>
 <tr class="even">
 <td align="left">NBA</td>
 <td align="right">14.085</td>
+<td align="left">13.91</td>
 </tr>
 </tbody>
 </table>
@@ -183,5 +160,7 @@ kable(exponents)</code></pre>
 <hr />
 <ol>
 <li id="fn1"><p><a href="https://www.sports-reference.com/blog/baseball-reference-faqs/">Baseball Reference</a> uses an exponent of 1.83 in their calculation of Pythagorean winning percentage.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p><a href="hhttps://web.williams.edu/Mathematics/sjmiller/public_html/math/papers/DayaratnaMiller_HockeyFinal.pdf">A published paper</a> shows the methodology they used to get this estimate.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p><a href="https://www.footballoutsiders.com/stat-analysis/2017/presenting-adjusted-pythagorean-theorem" class="uri">https://www.footballoutsiders.com/stat-analysis/2017/presenting-adjusted-pythagorean-theorem</a><a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
