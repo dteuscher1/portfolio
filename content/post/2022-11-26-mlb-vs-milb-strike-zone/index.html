@@ -1,0 +1,48 @@
+---
+title: MLB vs. MiLB Strike Zone
+author: David Teuscher
+date: '2022-11-26'
+slug: mlb-vs-milb-strike-zone
+categories: []
+tags: [sports analytics, baseball, R]
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-11-26T18:26:16-07:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
+## ✔ tidyr   1.2.0     ✔ stringr 1.4.1
+## ✔ readr   2.1.2     ✔ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>pitch_data &lt;- read.csv(&quot;milb.csv&quot;)
+
+august &lt;- pitch_data %&gt;%
+    filter(Game != &quot;MiLB: April&quot;)
+
+ggplot(august, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
+                     color = details.isStrike)) +
+    geom_point(alpha = .25) +
+    facet_wrap(~Game) +
+    coord_fixed() + 
+    scale_color_manual(&quot;Pitch Result&quot;, 
+                       values = c(&quot;darkgoldenrod&quot;, &quot;royalblue4&quot;), 
+                       labels = c(&quot;Ball&quot;, &quot;Strike&quot;)) +
+    ylim(-2, 6) +
+    xlim(-3, 3) +
+    labs(x = &quot;Horizontal Location&quot;, y = &quot;Vertical Location&quot;)</code></pre>
+<pre><code>## Warning: Removed 17767 rows containing missing values (geom_point).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="150%" /></p>

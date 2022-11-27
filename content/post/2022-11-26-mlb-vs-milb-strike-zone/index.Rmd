@@ -1,0 +1,42 @@
+---
+title: MLB vs. MiLB Strike Zone
+author: David Teuscher
+date: '2022-11-26'
+slug: mlb-vs-milb-strike-zone
+categories: []
+tags: [sports analytics, baseball, R]
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-11-26T18:26:16-07:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r, out.width= '150%'}
+pitch_data <- read.csv("milb.csv")
+
+august <- pitch_data %>%
+    filter(Game != "MiLB: April")
+
+ggplot(august, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
+                     color = details.isStrike)) +
+    geom_point(alpha = .25) +
+    facet_wrap(~Game) +
+    coord_fixed() + 
+    scale_color_manual("Pitch Result", 
+                       values = c("darkgoldenrod", "royalblue4"), 
+                       labels = c("Ball", "Strike")) +
+    ylim(-2, 6) +
+    xlim(-3, 3) +
+    labs(x = "Horizontal Location", y = "Vertical Location")
+```
+
