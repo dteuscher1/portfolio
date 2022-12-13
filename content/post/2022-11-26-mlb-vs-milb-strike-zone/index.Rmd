@@ -10,13 +10,22 @@ summary: ''
 authors: []
 lastmod: '2022-11-26T18:26:16-07:00'
 featured: no
+fig_caption: true
 image:
   caption: ''
   focal_point: ''
-  preview_only: no
+  preview_only: yes
 projects: []
 ---
 
+![Smith's Ballpark in Salt Lake City, Utah](Smiths_Ballpark.JPG){width=50%}
+In August 2022, I attended a Minor League baseball game in Salt Lake City. Since I played baseball for many years and watch a lot of baseball, I feel like I have a pretty good understanding of the strike zone. In the first few innings of the game, I felt like the umpire had a very tight strike zone and was especially not calling high strikes, which I feel had been more commonly called in the majors the last few years. As I discussed what I thought were questionable calls with my friends, someone in the row in front of us reminded us that the automated strike zone was being using in AAA ball. 
+
+My friends and I felt a little dumb for complaining about the automated strike zone, but at the same time I couldn't stop thinking about how I felt like the strike zone seemed small. Since I have been around baseball a lot, I felt that even though the strike zone was automated, it was different from the strike zone that is usually called. I pulled up MiLB Gameday for the game we were at and when I looked at the strike zone, it honestly looked a decent amount different from the MLB strike zone that I pulled up on Gameday for a MLB game. Now, I know that the strike zones are necessary to scale for Gameday, but I was again suspicious about the size of the strike zone. 
+
+Later, I began to search for the size of the automated strike zone. From an article published in The Athletic, "The strike zone extends 19 inches wide at the middle point of home plate, including an inch off either edge (home plate is 17 inches wide). The top and bottom edges of the strike zone are based on specific percentages of the batter's height. The size of the automated zone, MLB said, is similar to the major-league zone."^[[The Athletic: MLB's automated strike zone debuts in Triple A Pacific Coast League (Subscription required)](https://theathletic.com/news/mlb-automated-strike-zone/A2YrWvTjB98D/)]
+
+The automated balls and strikes system (ABS) was implemented in Triple A in May 2022. 
 ```{r}
 library(tidyverse)
 ```
