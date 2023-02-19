@@ -28,14 +28,44 @@ Later, I began to search for the size of the automated strike zone. From an arti
 The automated balls and strikes system (ABS) was implemented in Triple A in May 2022. 
 ```{r}
 library(tidyverse)
+library(CalledStrike)
 ```
 
 ```{r, out.width= '150%'}
-pitch_data <- read.csv("milb.csv")
+pitch_data <- read.csv("milb.csv") %>%
+    filter(!is.na(pitchData.coordinates.pX) & !is.na(pitchData.coordinates.pZ))
+strike_gam_fit <- function(d){
+  gam(Strike ~ s(plate_x, plate_z),
+      family=binomial,
+      data=d)
+}
+
+gam_fit <- gam(details.isStrike ~ s(pitchData.coordinates.pX, pitchData.coordinates.pZ),
+               family = binomial,
+               data = pitch_data)
+
+grid <- expand.grid(pitchData.coordinates.pX = seq(-1.5, 1.5, length=100),
+                      pitchData.coordinates.pZ = seq(1,4, length=100))
+grid$lp <- predict(gam_fit, grid, type = "response")
+head(grid)
+  
+ggplot(grid)  +
+    geom_tile(aes(x=pitchData.coordinates.pX, y=pitchData.coordinates.pZ,
+                  fill= lp)) +
+    scale_fill_distiller(palette = "Spectral")  +
+    add_zone("black") +
+    xlim(-1.5, 1.5) +
+    ylim(1.0, 4.0)  +
+    coord_fixed() +
+    ggtitle("Title") +
+    centertitle() +
+    increasefont()  
 
 august <- pitch_data %>%
-    filter(Game != "MiLB: April")
-
+    filter(Game != "MiLB: April") %>%
+    rename(description = details.description)
+august2 <- setup_called(august)
+called_strike_plot(august)
 ggplot(august, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
                      color = details.isStrike)) +
     geom_point(alpha = .25) +
