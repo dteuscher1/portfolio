@@ -64,18 +64,38 @@ ggplot(grid)  +
 august <- pitch_data %>%
     filter(Game != "MiLB: April") %>%
     rename(description = details.description)
-august2 <- setup_called(august)
-called_strike_plot(august)
+
 ggplot(august, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
                      color = details.isStrike)) +
-    geom_point(alpha = .25) +
+    geom_point(alpha = .45, size = 1.5) +
     facet_wrap(~Game) +
     coord_fixed() + 
     scale_color_manual("Pitch Result", 
                        values = c("darkgoldenrod", "royalblue4"), 
                        labels = c("Ball", "Strike")) +
-    ylim(-2, 6) +
-    xlim(-3, 3) +
+    ylim(0, 5) +
+    xlim(-1.5, 1.5) +
+    theme_minimal() +
+    coord_equal() +
     labs(x = "Horizontal Location", y = "Vertical Location")
+```
+
+```{r}
+milb <- pitch_data %>%
+    filter(Game != 'MLB')
+
+ggplot(milb, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
+                     color = details.isStrike)) +
+    geom_point(alpha = .45) +
+    facet_wrap(~Game) +
+    coord_fixed() + 
+    scale_color_manual("Pitch Result", 
+                       values = c("darkgoldenrod", "royalblue4"), 
+                       labels = c("Ball", "Strike")) +
+    ylim(1, 4) +
+    xlim(-3, 3) +
+    labs(x = "Horizontal Location", y = "Vertical Location") + 
+    theme_minimal() + 
+    coord_equal()
 ```
 
