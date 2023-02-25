@@ -26,76 +26,181 @@ My friends and I felt a little dumb for complaining about the automated strike z
 Later, I began to search for the size of the automated strike zone. From an article published in The Athletic, "The strike zone extends 19 inches wide at the middle point of home plate, including an inch off either edge (home plate is 17 inches wide). The top and bottom edges of the strike zone are based on specific percentages of the batter's height. The size of the automated zone, MLB said, is similar to the major-league zone."^[[The Athletic: MLB's automated strike zone debuts in Triple A Pacific Coast League (Subscription required)](https://theathletic.com/news/mlb-automated-strike-zone/A2YrWvTjB98D/)]
 
 The automated balls and strikes system (ABS) was implemented in Triple A in May 2022. 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(CalledStrike)
+library(patchwork)
 ```
 
 ```{r, out.width= '150%'}
 pitch_data <- read.csv("milb.csv") %>%
     filter(!is.na(pitchData.coordinates.pX) & !is.na(pitchData.coordinates.pZ))
+
 strike_gam_fit <- function(d){
   gam(Strike ~ s(plate_x, plate_z),
       family=binomial,
       data=d)
 }
 
+
 gam_fit <- gam(details.isStrike ~ s(pitchData.coordinates.pX, pitchData.coordinates.pZ),
                family = binomial,
-               data = pitch_data)
+               data = pitch_data %>% filter(Game == "MLB"))
 
 grid <- expand.grid(pitchData.coordinates.pX = seq(-1.5, 1.5, length=100),
                       pitchData.coordinates.pZ = seq(1,4, length=100))
 grid$lp <- predict(gam_fit, grid, type = "response")
-head(grid)
+
   
-ggplot(grid)  +
+MLB <- ggplot(grid)  +
     geom_tile(aes(x=pitchData.coordinates.pX, y=pitchData.coordinates.pZ,
                   fill= lp)) +
     scale_fill_distiller(palette = "Spectral")  +
-    add_zone("black") +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = "black", alpha = 0) +
     xlim(-1.5, 1.5) +
     ylim(1.0, 4.0)  +
     coord_fixed() +
-    ggtitle("Title") +
+    ggtitle("title") +
     centertitle() +
-    increasefont()  
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = 'black'))
+    
+gam_fit <- gam(details.isStrike ~ s(pitchData.coordinates.pX, pitchData.coordinates.pZ),
+               family = binomial,
+               data = pitch_data %>% filter(Game == "MiLB: April"))
+
+grid <- expand.grid(pitchData.coordinates.pX = seq(-1.5, 1.5, length=100),
+                      pitchData.coordinates.pZ = seq(1,4, length=100))
+grid$lp <- predict(gam_fit, grid, type = "response")
+
+milb_april <- ggplot(grid)  +
+    geom_tile(aes(x=pitchData.coordinates.pX, y=pitchData.coordinates.pZ,
+                  fill= lp)) +
+    scale_fill_distiller(palette = "Spectral")  +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = "black", alpha = 0) +
+    xlim(-1.5, 1.5) +
+    ylim(1.0, 4.0)  +
+    coord_fixed() +
+    ggtitle("title") +
+    centertitle() +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = 'black'))
+
+gam_fit <- gam(details.isStrike ~ s(pitchData.coordinates.pX, pitchData.coordinates.pZ),
+               family = binomial,
+               data = pitch_data %>% filter(Game == "MiLB: August"))
+
+grid <- expand.grid(pitchData.coordinates.pX = seq(-1.5, 1.5, length=100),
+                      pitchData.coordinates.pZ = seq(1,4, length=100))
+grid$lp <- predict(gam_fit, grid, type = "response")
+
+milb_august <- ggplot(grid)  +
+    geom_tile(aes(x=pitchData.coordinates.pX, y=pitchData.coordinates.pZ,
+                  fill= lp)) +
+    scale_fill_distiller(palette = "Spectral")  +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = "black", alpha = 0) +
+    xlim(-1.5, 1.5) +
+    ylim(1.0, 4.0)  +
+    coord_fixed() +
+    ggtitle("title") +
+    centertitle() +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = 'black'))
+
+# Width of the strike zone
 
 august <- pitch_data %>%
     filter(Game != "MiLB: April") %>%
     rename(description = details.description)
 
+august %>%
+    group_by(Game) %>%
+    summarize(top = mean(pitchData.strikeZoneTop),
+              bottom = mean(pitchData.strikeZoneBottom))
+sz_bottom <- mean(august$pitchData.strikeZoneBottom)
+sz_top <- mean(august$pitchData.strikeZoneTop)
+
 ggplot(august, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
                      color = details.isStrike)) +
     geom_point(alpha = .45, size = 1.5) +
-    facet_wrap(~Game) +
-    coord_fixed() + 
+    facet_wrap(~Game) + 
     scale_color_manual("Pitch Result", 
                        values = c("darkgoldenrod", "royalblue4"), 
                        labels = c("Ball", "Strike")) +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = "black", alpha = 0) +
     ylim(0, 5) +
     xlim(-1.5, 1.5) +
     theme_minimal() +
     coord_equal() +
     labs(x = "Horizontal Location", y = "Vertical Location")
+
+MLB + milb_august
+milb_april + milb_august
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 milb <- pitch_data %>%
     filter(Game != 'MLB')
 
+
+milb %>%
+    group_by(Game) %>%
+    summarize(top = mean(pitchData.strikeZoneTop),
+              bottom = mean(pitchData.strikeZoneBottom))
 ggplot(milb, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
                      color = details.isStrike)) +
-    geom_point(alpha = .45) +
-    facet_wrap(~Game) +
-    coord_fixed() + 
+    geom_point(alpha = .45, size = 1.5) +
+    facet_wrap(~Game) + 
     scale_color_manual("Pitch Result", 
                        values = c("darkgoldenrod", "royalblue4"), 
                        labels = c("Ball", "Strike")) +
-    ylim(1, 4) +
-    xlim(-3, 3) +
-    labs(x = "Horizontal Location", y = "Vertical Location") + 
-    theme_minimal() + 
-    coord_equal()
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = "black", alpha = 0) +
+    ylim(0, 5) +
+    xlim(-1.5, 1.5) +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = 'black')) + 
+    coord_equal() +
+    labs(x = "Horizontal Location (ft.)", y = "Vertical Location (ft.)")
+```
+
+```{r}
+pitch_data %>%
+    group_by(Game) %>%
+    summarize(top = round(mean(pitchData.strikeZoneTop) * 12, 2),
+              bottom = round(mean(pitchData.strikeZoneBottom) * 12, 2))
+
+pitch_data2 <- pitch_data %>%
+    mutate(strike = ifelse(dplyr::between(pitchData.coordinates.pZ, pitchData.strikeZoneBottom, pitchData.strikeZoneTop) & dplyr:: between(pitchData.coordinates.pX, -.83, .83), 1, 0), 
+           correct = ifelse((details.description == "Called Strike" & strike == 1) | (details.description == "Ball" & strike == 0), 1, 0)) %>%
+    group_by(details.description) %>%
+    summarize(avg_correct = mean(correct))
+
 ```
 
