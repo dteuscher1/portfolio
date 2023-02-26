@@ -25,33 +25,629 @@ In August 2022, I attended a Minor League baseball game in Salt Lake City. Since
 <p>My friends and I felt a little dumb for complaining about the automated strike zone, but at the same time I couldn’t stop thinking about how I felt like the strike zone seemed small. Since I have been around baseball a lot, I felt that even though the strike zone was automated, it was different from the strike zone that is usually called. I pulled up MiLB Gameday for the game we were at and when I looked at the strike zone, it honestly looked a decent amount different from the MLB strike zone that I pulled up on Gameday for a MLB game. Now, I know that the strike zones are necessary to scale for Gameday, but I was again suspicious about the size of the strike zone.</p>
 <p>Later, I began to search for the size of the automated strike zone. From an article published in The Athletic, “The strike zone extends 19 inches wide at the middle point of home plate, including an inch off either edge (home plate is 17 inches wide). The top and bottom edges of the strike zone are based on specific percentages of the batter’s height. The size of the automated zone, MLB said, is similar to the major-league zone.”<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
 <p>The automated balls and strikes system (ABS) was implemented in Triple A in May 2022.</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
-## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
-## ✔ tidyr   1.2.0     ✔ stringr 1.4.1
-## ✔ readr   2.1.2     ✔ forcats 0.5.1</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>pitch_data &lt;- read.csv(&quot;milb.csv&quot;)
+<pre class="r"><code>library(tidyverse)
+library(CalledStrike)
+library(patchwork)</code></pre>
+<pre class="r"><code>pitch_data &lt;- read.csv(&quot;milb.csv&quot;) %&gt;%
+    filter(!is.na(pitchData.coordinates.pX) &amp; !is.na(pitchData.coordinates.pZ))
+
+
+# Width of the strike zone
 
 august &lt;- pitch_data %&gt;%
-    filter(Game != &quot;MiLB: April&quot;)
+    filter(Game != &quot;MiLB: April&quot;) %&gt;%
+    rename(description = details.description)
+
+august %&gt;%
+    group_by(Game) %&gt;%
+    summarize(top = mean(pitchData.strikeZoneTop),
+              bottom = mean(pitchData.strikeZoneBottom))</code></pre>
+<pre><code>## # A tibble: 2 × 3
+##   Game           top bottom
+##   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;
+## 1 MLB           3.37   1.60
+## 2 MiLB: August  3.08   1.63</code></pre>
+<pre class="r"><code>sz_bottom &lt;- mean(pitch_data$pitchData.strikeZoneBottom)
+sz_top &lt;- mean(pitch_data$pitchData.strikeZoneTop)
 
 ggplot(august, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
                      color = details.isStrike)) +
-    geom_point(alpha = .25) +
-    facet_wrap(~Game) +
-    coord_fixed() + 
+    geom_point(alpha = .45, size = 1.5) +
+    facet_wrap(~Game) + 
     scale_color_manual(&quot;Pitch Result&quot;, 
                        values = c(&quot;darkgoldenrod&quot;, &quot;royalblue4&quot;), 
                        labels = c(&quot;Ball&quot;, &quot;Strike&quot;)) +
-    ylim(-2, 6) +
-    xlim(-3, 3) +
-    labs(x = &quot;Horizontal Location&quot;, y = &quot;Vertical Location&quot;)</code></pre>
-<pre><code>## Warning: Removed 17767 rows containing missing values (geom_point).</code></pre>
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = &quot;black&quot;, alpha = 0) +
+    ylim(0, 5) +
+    xlim(-1.5, 1.5) +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = &#39;black&#39;),
+          strip.background = element_rect(fill = &#39;white&#39;),
+          strip.text = element_text(color = &#39;black&#39;)) + 
+    coord_equal() +
+    labs(x = &quot;Horizontal Location (ft.)&quot;, y = &quot;Vertical Location (ft.)&quot;)</code></pre>
+<pre><code>## Warning: Removed 5367 rows containing missing values (`geom_point()`).</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="150%" /></p>
+<pre class="r"><code>milb &lt;- pitch_data %&gt;%
+    filter(Game != &#39;MLB&#39;)
+
+
+milb %&gt;%
+    group_by(Game) %&gt;%
+    summarize(top = mean(pitchData.strikeZoneTop),
+              bottom = mean(pitchData.strikeZoneBottom))</code></pre>
+<pre><code>## # A tibble: 2 × 3
+##   Game           top bottom
+##   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;
+## 1 MiLB: April   3.17   1.64
+## 2 MiLB: August  3.08   1.63</code></pre>
+<pre class="r"><code>ggplot(milb, aes(x = pitchData.coordinates.pX, y = pitchData.coordinates.pZ, 
+                     color = details.isStrike)) +
+    geom_point(alpha = .45, size = 1.5) +
+    facet_wrap(~Game) + 
+    scale_color_manual(&quot;Pitch Result&quot;, 
+                       values = c(&quot;darkgoldenrod&quot;, &quot;royalblue4&quot;), 
+                       labels = c(&quot;Ball&quot;, &quot;Strike&quot;)) +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = &quot;black&quot;, alpha = 0) +
+    ylim(0, 5) +
+    xlim(-1.5, 1.5) +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = &#39;black&#39;),
+          strip.background = element_rect(fill = &#39;white&#39;),
+          strip.text = element_text(color = &#39;black&#39;)) + 
+    coord_equal() +
+    labs(x = &quot;Horizontal Location (ft.)&quot;, y = &quot;Vertical Location (ft.)&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>gam_fit &lt;- gam(details.isStrike ~ s(pitchData.coordinates.pX, pitchData.coordinates.pZ),
+               family = binomial,
+               data = pitch_data %&gt;% filter(Game == &quot;MLB&quot;))
+grid &lt;- expand.grid(pitchData.coordinates.pX = seq(-1.5, 1.5, length=100),
+                      pitchData.coordinates.pZ = seq(1,4, length=100))
+grid$lp &lt;- predict(gam_fit, grid, type = &quot;response&quot;)
+  
+MLB &lt;- ggplot(grid)  +
+    geom_tile(aes(x=pitchData.coordinates.pX, y=pitchData.coordinates.pZ,
+                  fill= lp)) +
+    scale_fill_distiller(&quot;Strike Probability&quot;, 
+                         palette = &quot;Spectral&quot;)  +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = &quot;black&quot;, alpha = 0) +
+    xlim(-1.5, 1.5) +
+    ylim(1.0, 4.0)  +
+    coord_fixed() +
+    labs(title = &quot;MLB&quot;, x = &quot;Horizontal Location (ft.)&quot;, y = &quot;Vertical Location (ft.)&quot;) +
+    centertitle() +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = &#39;black&#39;))
+
+
+gam_fit &lt;- gam(details.isStrike ~ s(pitchData.coordinates.pX, pitchData.coordinates.pZ),
+               family = binomial,
+               data = pitch_data %&gt;% filter(Game == &quot;MiLB: April&quot;))
+grid &lt;- expand.grid(pitchData.coordinates.pX = seq(-1.5, 1.5, length=100),
+                      pitchData.coordinates.pZ = seq(1,4, length=100))
+grid$lp &lt;- predict(gam_fit, grid, type = &quot;response&quot;)
+milb_april &lt;- ggplot(grid)  +
+    geom_tile(aes(x=pitchData.coordinates.pX, y=pitchData.coordinates.pZ,
+                  fill= lp)) +
+    scale_fill_distiller(&quot;Strike Probability&quot;,
+                         palette = &quot;Spectral&quot;)  +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = &quot;black&quot;, alpha = 0) +
+    xlim(-1.5, 1.5) +
+    ylim(1.0, 4.0)  +
+    coord_fixed() +
+    labs(title = &quot;MiLB: April&quot;, x = &quot;Horizontal Location (ft.)&quot;, y = &quot;Vertical Location (ft.)&quot;) +
+    centertitle() +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = &#39;black&#39;))
+
+gam_fit &lt;- gam(details.isStrike ~ s(pitchData.coordinates.pX, pitchData.coordinates.pZ),
+               family = binomial,
+               data = pitch_data %&gt;% filter(Game == &quot;MiLB: August&quot;))
+grid &lt;- expand.grid(pitchData.coordinates.pX = seq(-1.5, 1.5, length=100),
+                      pitchData.coordinates.pZ = seq(1,4, length=100))
+grid$lp &lt;- predict(gam_fit, grid, type = &quot;response&quot;)
+milb_august &lt;- ggplot(grid)  +
+    geom_tile(aes(x=pitchData.coordinates.pX, y=pitchData.coordinates.pZ,
+                  fill= lp)) +
+    scale_fill_distiller(&quot;Strike Probability&quot;,
+                         palette = &quot;Spectral&quot;)  +
+    geom_rect(xmin = -.84,
+              xmax = .84,
+              ymin = sz_bottom,
+              ymax = sz_top, color = &quot;black&quot;, alpha = 0) +
+    xlim(-1.5, 1.5) +
+    ylim(1.0, 4.0)  +
+    coord_fixed() +
+    labs(title = &quot;MiLB: August&quot;, x = &quot;Horizontal Location (ft.)&quot;, y = &quot;Vertical Location (ft.)&quot;) +
+    centertitle() +
+    theme_light() + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(), 
+          axis.line = element_line(color = &#39;black&#39;))
+
+(milb_august + theme(legend.position = &quot;none&quot;)) + MLB + plot_layout(guides = &#39;collect&#39;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>(milb_august + theme(legend.position = &quot;none&quot;)) + milb_april + plot_layout(guides = &#39;collect&#39;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<pre class="r"><code>library(gt)
+pitch_data %&gt;%
+    group_by(Game) %&gt;%
+    summarize(top = round(mean(pitchData.strikeZoneTop) * 12, 2),
+              bottom = round(mean(pitchData.strikeZoneBottom) * 12, 2)) %&gt;%
+    gt(rowname_col = &quot;Game&quot;) %&gt;%
+    cols_label(top = &quot;Top of Strike Zone&quot;,
+               bottom = &quot;Bottom of Strike Zone&quot;) %&gt;%
+    tab_source_note(source_note = &quot;Location is determined by the average of the strike zone locations from Statcast&quot;)</code></pre>
+<div id="vosqyzufqg" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#vosqyzufqg .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#vosqyzufqg .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#vosqyzufqg .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#vosqyzufqg .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#vosqyzufqg .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#vosqyzufqg .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#vosqyzufqg .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#vosqyzufqg .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#vosqyzufqg .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#vosqyzufqg .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#vosqyzufqg .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#vosqyzufqg .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#vosqyzufqg .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vosqyzufqg .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#vosqyzufqg .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#vosqyzufqg .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vosqyzufqg .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#vosqyzufqg .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vosqyzufqg .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#vosqyzufqg .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vosqyzufqg .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#vosqyzufqg .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vosqyzufqg .gt_left {
+  text-align: left;
+}
+
+#vosqyzufqg .gt_center {
+  text-align: center;
+}
+
+#vosqyzufqg .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#vosqyzufqg .gt_font_normal {
+  font-weight: normal;
+}
+
+#vosqyzufqg .gt_font_bold {
+  font-weight: bold;
+}
+
+#vosqyzufqg .gt_font_italic {
+  font-style: italic;
+}
+
+#vosqyzufqg .gt_super {
+  font-size: 65%;
+}
+
+#vosqyzufqg .gt_two_val_uncert {
+  display: inline-block;
+  line-height: 1em;
+  text-align: right;
+  font-size: 60%;
+  vertical-align: -0.25em;
+  margin-left: 0.1em;
+}
+
+#vosqyzufqg .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#vosqyzufqg .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#vosqyzufqg .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#vosqyzufqg .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#vosqyzufqg .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Top of Strike Zone</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Bottom of Strike Zone</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right gt_stub">MLB</td>
+<td class="gt_row gt_right">40.45</td>
+<td class="gt_row gt_right">19.15</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">MiLB: April</td>
+<td class="gt_row gt_right">38.04</td>
+<td class="gt_row gt_right">19.64</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">MiLB: August</td>
+<td class="gt_row gt_right">37.02</td>
+<td class="gt_row gt_right">19.59</td></tr>
+  </tbody>
+  <tfoot class="gt_sourcenotes">
+    <tr>
+      <td class="gt_sourcenote" colspan="3">Location is determined by the average of the strike zone locations from Statcast</td>
+    </tr>
+  </tfoot>
+  
+</table>
+</div>
+<pre class="r"><code># pitch_data2 &lt;- pitch_data %&gt;%
+#     mutate(strike = ifelse(dplyr::between(pitchData.coordinates.pZ, pitchData.strikeZoneBottom, pitchData.strikeZoneTop) &amp; dplyr:: between(pitchData.coordinates.pX, -.83, .83), 1, 0), 
+#            correct = ifelse((details.description == &quot;Called Strike&quot; &amp; strike == 1) | (details.description == &quot;Ball&quot; &amp; strike == 0), 1, 0)) %&gt;%
+#     group_by(details.description) %&gt;%
+#     summarize(avg_correct = mean(correct))</code></pre>
 <div class="footnotes footnotes-end-of-document">
 <hr />
 <ol>
