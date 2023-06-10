@@ -42,6 +42,6 @@ superuser: true
 title: David Teuscher
 ---
 
-I work as a Quantitative Modeling Analyst on the Allowance for Credit Loss team. I have experience with machine learning, Bayesian statistics, and statistical modeling. My research experience includes sports analytics, spatial statistics, and combining elements of statistical modeling and machine learning together. My intersts in my free time revolve around sports analytics, natural language processing, and developments in machine learning. 
+I work as a Quantitative Modeling Analyst on the Allowance for Credit Loss team at Zions Bancorporation. I have experience with machine learning, Bayesian statistics, and statistical modeling. My research experience includes sports analytics, spatial statistics, and combining elements of statistical modeling and machine learning together. My interests in my free time revolve around sports analytics, natural language processing, and developments in machine learning. 
 
 {{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/Teuscher_David.pdf" "newtab" >}}resume{{< /staticref >}}.
