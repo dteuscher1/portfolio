@@ -35,6 +35,56 @@ projects: []
 </div>
 <div id="data-collectionweb-scraping" class="section level2">
 <h2>Data Collection/Web Scraping</h2>
+<p>I needed data from different sources for this project. I needed to find somewhere where I could get the text for songs by Viktor Tsoi as well as the text from Dostoevsky’s published works. I was able to find the data from two different sources.</p>
+<p>For Viktor Tsoi’s songs, I ended up needing to webscrape the lyrcis for songs from the internet. I found a <a href="https://lyric-text.ru/viktor-tsoy/">website</a> that contained links to the songs and their lyrics from Viktor Tsoi. I decided to use BeautifulSoup to webscrape, so I ended up copying the URLs for the four pages of songs. The code below outlines the process of getting the links for each song and saving the song title as well.</p>
+<pre class="python"><code># Create empty list for links and song title
+links = []
+song_title = []
+# Loop through the four URLs to scrape from
+for url in urls:
+    # Specify header information related to your computer
+    headers = {
+        #header_information for your computer}
+    # Make a request to the web page
+    response = requests.get(url, headers=headers)
+    # Parse the HTML content on the page
+    soup = bs(response.content, &quot;html.parser&quot;)
+    # Find all the div tags with the specific class
+    paragraphs = soup.find_all(&quot;div&quot;, {&#39;class&#39;: &#39;content_box&#39;})
+    # Loop through each found div tag
+    for paragraph in paragraphs:
+        # Pull all the anchors out
+        anchors = paragraph.find_all(&#39;a&#39;)
+        # Try to take the href from the anchor tag if possible
+        for anchor in anchors:
+            try:
+                links.append(anchor.attrs[&#39;href&#39;])
+                song_title.append(anchor.get_text())
+            # print that the anchor is skipped if there is a KeyError resulting from no href attribute
+            except KeyError:
+                print(&quot;skipping this anchor because it doesn&#39;t have an href attribute&quot;)</code></pre>
+<p>After I extracted the links for each song, I looped through each link and extracted the song lyrics and saved the title and lyrics to a <code>.txt</code> file to be used later. In order to get the song lyrics, I only needed to extracted the paragraph element from the main div that contained the content on the page. The code for scraping the lyrics and saving them to a file are provided before:</p>
+<pre class="python"><code>with open(f&quot;songs.txt&quot;, mode=&#39;w&#39;) as outfile:
+    # Write a header for the file
+    outfile.write(&quot;Title&quot; + &quot;\t&quot; + &quot; Lyrics&quot; + &#39;\n&#39;)
+    # Loop through the links
+    for i in range(len(links)):
+        # Get the HTML content
+        response = requests.get(links[i], headers=headers)
+        # Parse the HTML content on the page
+        soup = bs(response.content, &quot;html.parser&quot;)
+        # Find all the divs with the specific class and then the paragraph inside
+        paragraphs = soup.find(&#39;div&#39;, {&#39;class&#39;: &#39;content_box&#39;}).find(&#39;p&#39;)
+        # Write out to text file if there is text
+        try:
+            outfile.write(song_title[i] + &quot;\t&quot; + paragraphs.get_text(strip=True) + &#39;\n&#39;)
+            print(f&#39;Writing {song_title[i]}&#39;)
+        except:
+            print(&quot;No text. Moving to next link&quot;)
+            continue</code></pre>
+<p>Finding the texts of Dostoevsky’s works was a lot easier than getting the song lyrics I needed. There was a <a href="https://www.kaggle.com/datasets/d0rj3228/russian-literature/data">Kaggle dataset</a> that had text files for 34 works of literature by Dostoevsky. This didn’t include everything that Doestoevsky ever wrote, but it did include his major works, so I thought that it was enough for this project.</p>
+<p>The Kaggle dataset also included a file that had the year the book was written, which was also need for determining how the topics changed over time. I had to manually create a file that had the year that each song was written. I used Wikipedia to get the years when songs were written.</p>
+<p>Once I had collected all of the data, I was able to begin working with the data. There was a decent amount of preprocessing that needed to be done before I could try topic modeling.</p>
 </div>
 <div id="text-preprocessing" class="section level2">
 <h2>Text Preprocessing</h2>
