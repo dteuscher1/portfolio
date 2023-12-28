@@ -88,6 +88,32 @@ for url in urls:
 </div>
 <div id="text-preprocessing" class="section level2">
 <h2>Text Preprocessing</h2>
+<p>There were a number of steps that I took to preprocess the text for analyzing and topic modeling. I’ll walk through the general preprocessing steps that I took and then I will highlight a few specific details that relate to this specific project.</p>
+<p>The general steps that I took to clean up the texts for topic modeling include:</p>
+<ul>
+<li><p>Removing any punctuation or white space</p></li>
+<li><p>Removing stopwords</p></li>
+<li><p>Split the text into words</p></li>
+<li><p>Lemmatization of words</p></li>
+</ul>
+<p>I wrote a function that is shown below to perform all of the preprocessing steps.</p>
+<pre class="python"><code>russian_stopwords = stopwords.words(&quot;russian&quot;) + [&quot;твой&quot;, &quot;наш&quot;, &quot;это&quot;, &quot;--&quot;, &quot;\&quot;&quot;, &quot;–&quot;, &quot;—&quot;,
+                                                  &quot;…&quot;, &quot;,&quot;, &quot;...&quot;, &quot;…&quot;, &quot;»&quot;, &quot;«&quot;, &quot;-&quot;, &quot;м&quot;, &quot;когда&quot;, &quot;э&quot;, &quot;24&quot;, &quot;то&quot;, &quot;припев&quot;, &quot;то&quot;, &quot;весь&quot;, &quot;:&quot;, &quot;эй&quot;, &quot;кто&quot;, &quot;свой&quot;]
+
+
+# Preprocess function for the text
+def preprocess_text(text):
+    tokens = mystem.lemmatize(text.lower())
+    tokens = [token for token in tokens if token not in russian_stopwords \
+              and token != &quot; &quot; \
+              and token.strip() not in string.punctuation]
+
+    text = &quot; &quot;.join(tokens).replace(&quot;,&quot;, &quot; &quot;).replace(&quot;«&quot;, &quot; &quot;).replace(&quot;–&quot;, &quot; &quot;).replace(&quot;--&quot;, &quot; &quot;).replace(&quot;—&quot;, &quot; &quot;).replace(&quot;-&quot;, &quot; &quot;).replace(&quot;»&quot;, &quot; &quot;).replace(&quot;\&quot;&quot;, &quot; &quot;).replace(&quot;::&quot;, &quot; &quot;)
+
+    return text</code></pre>
+<p>One difference with preprocessing is that I was working with Russian texts, which have a different grammatical structure. Russian uses grammatical cases where nouns and adjectives change endings depending on their placement and meaning in a sentence. As a result of this, a single noun can have multiple different endings depending on the sentence, but has more or less the same meaning. Using lemmatization to break down these words to their original base word, instead of just to a stem using stemming, is extremely helpful for getting meaning out of Russian texts. I ended up using <code>pymystem3</code>, which uses Yandex’s morphological analyzer, MyStem.</p>
+<p>The other nuance with preprocessing is that although NLTK has stopwords for Russian, it only has a small number of potential stopwords. Initially, I looked at the topic using only the Russian stopwords from NLTK, but found a lot of additional words that would be considered stopwords and had minimal meaning when examinig topics. As a result, I manually added additional words to the stopwords that I removed.</p>
+<p>After the text for both the songs and the novels were cleaned, I created a corpora for the songs and books separately. With each corpora, I also calculated the document term matrix to be used for topic modeling with Latent Dirichlet Allocation (LDA).</p>
 </div>
 <div id="topic-modeling-using-lda" class="section level2">
 <h2>Topic Modeling using LDA</h2>
