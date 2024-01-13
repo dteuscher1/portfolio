@@ -117,10 +117,43 @@ def preprocess_text(text):
 </div>
 <div id="topic-modeling-using-lda" class="section level2">
 <h2>Topic Modeling using LDA</h2>
+<p>With the corpora and document term matrix, I could fit the model using LDA. The model was fit using <code>gensim</code>. One recommended approach to determining the number of topics is to fit many LDA models with different number of topics and then select the model with the highest coherence score. For this project, I just used a process of trial and error. When I increased to anything more than 3 topics, two of the topics would always be overlapping with each other, where as 3 topics seemed to provide a good separation between the topics.</p>
+<p>There is good separation between the topics for Dostoevsky’s novels which is shown below. I would expect good separation here because Dostoevsky wrote novels over a long period of time and his interests and style changed and evolved throughout his life.</p>
+<p><img src="topic_books.jpg" /></p>
+<p>The separation isn’t as good for Viktor Tsoi’s songs, but I decided to also have three topics because it seemed like there was always some separation between the two topics that are close together.</p>
+<p><img src="topic_songs.jpg" /></p>
+<p>After identifying the topics, I tried to summarize or label these groups/topics. It can be somewhat difficult when looking at the most common terms to find an adequate label. My topics for Dostoevsky were:</p>
+<ol style="list-style-type: decimal">
+<li>Действия (Actions)</li>
+<li>Люди (People)</li>
+<li>Психология людей (Psychology of humans)</li>
+</ol>
+<p>The topics for Viktor Tsoi were:</p>
+<ol style="list-style-type: decimal">
+<li>Желания (Desires)</li>
+<li>Любовь (Love)</li>
+<li>Повседневная жизнь (Everyday life)</li>
+</ol>
+<p>These topics are very broad, but it was the best I could do to narrow these topics down to a single label or word. Better or more accurate descriptions could likely be applied if additional thought was given.</p>
+<p>With my topics, I could now calculate how the prevelance of these topics changed throughout time.</p>
 </div>
 <div id="topics-over-time" class="section level2">
 <h2>Topics over Time</h2>
+<p>The prevalence of topics over time is determined by extracting the weight for each of the three topics for each document in the document term matrix and then calculating the average weight of each topic for each year.</p>
+<p>The weights for each topic can be extracted from the model using the following code where this code is used as you loop through every document you have:</p>
+<pre class="python"><code># Get the weights for each document
+doc_weights = lda_model[doc_term_matrix[i]]
+# Add the weights into the data frame
+weights_df = pd.DataFrame(doc_weights, columns = [&#39;topic&#39;, &#39;prob_weight&#39;])</code></pre>
+<p>After getting the weights for each document, I merged the weights back into my dataset with the names of the original novels and songs as well as the year they were published. For each of the books and songs datasets, I then calculated the average weight of each topic for each year. Since there wasn’t a novel or song for every single year, I applied some smoothing to the curves to get a better idea of general trends.</p>
+<p>Not surprisingly, the most prevalent topic over time for Dostoevsky was the actions topic. Often novels are describing things that are happening and have some sort of movement and actions. Interestingly, the weight for psychology of humans increases around the time when Dostoevsky published Crime and Punishment, which is a novel that spends a lot of time examining the psychology of the main character (I won’t explain more than that, so as to not spoil what the novel is about if you haven’t read it).</p>
+<p><img src="plot_books.jpg" /></p>
+<p>The topics have more fluctuate from Viktor Tsoi’s songs, which I would expect. There is likely more variation and evolution in the topics of songs in comparison to the style of an author. Songs can still have a similar style, but change the topics they are about. Earlier songs seem weighted towards everyday life topics, which seems logicial given they were written in the Soviet Union in the early 80s. As the decade progressed and as there was somewhat more flexibility within the Soviet Union, Tsoi moved towards other topics such as love and desires. It would have been interesting to see how these topics continue to evolve further, but Tsoi tragically died in a car accident in 1990.</p>
+<p><img src="plot_songs.jpg" /></p>
 </div>
 <div id="recap" class="section level2">
 <h2>Recap</h2>
+<p>In short, I really enjoyed working on this project because it gave me a chance to combine the two things (statistics and Russian) that I studied in college. I was able to obtain the data from Kaggle as well as through web scraping. Preprocessing was done to prepare the text for modeling, while special attention was given to certain steps since I was working with Russian, which has different grammatical rules and patterns than English.</p>
+<p>The results of this project gave three different topics from the works of literature of Dostoevsky and three topics from the song lyrics of Viktor Tsoi and examined the prevalence of those topics over time. It provided a brief overview of how these topics were obtained.</p>
+<p>I think it would be interesting to put more time into selecting topics or using the highest coherence score to determine the number of topics, while also being able to better label the topics. I also think it would be interesting to pull other types of text (social media posts, news articles, etc.) and see how topics from those medium change over time.</p>
 </div>
